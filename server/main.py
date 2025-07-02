@@ -35,6 +35,7 @@ from typing import List
 from dotenv import load_dotenv
 import os
 import logging
+from pydantic_collections import BaseCollectionModel
 
 
 #----------------------------------------
@@ -206,6 +207,43 @@ def get_bmi(person_id: int, db: Session = Depends(get_db)):
 def get_weight(person_id: int, db: Session = Depends(get_db)):
     weights = db.query(models.WeightEntry).filter(models.WeightEntry.person_id == person_id).order_by(models.WeightEntry.date)
     return weights
+
+
+#----------------------------------------
+# List person all weight and BMI
+#----------------------------------------
+class WeightCollection(BaseCollectionModel[schemas.WeightEntryBase]):
+    pass
+
+@app.get("/persons/{person_id}/all_weight_bmi/", response_model=List[schemas.WeightEntryRead])
+def get_weight(person_id: int, db: Session = Depends(get_db)):
+
+
+
+    weights = db.query(models.WeightEntry).filter(models.WeightEntry.person_id == person_id).order_by(models.WeightEntry.date)
+    logger.debug("XX: %s", weights.first().weight)
+    logger.debug("XX: %s", weights[0].weight)
+    logger.debug("XX: %s", weights.count())
+    for x in weights:
+        logger.debug("YY: %s", x.weight)
+
+    for i in range(0,weights.count()):
+        logger.debug("ZZZ: %s %s", i, weights[i].weight)
+        
+
+#    weightsCollection = WeightCollection(weights)
+#    logger.debug("Weight collection: %s", weightsCollection)
+
+
+
+
+    person = crud.get_person(db, person_id)
+    logger.debug("Size: %s", person.height)    
+
+
+
+    return result
+
 
 
 logger.critical("Weight Manager Front End ready")

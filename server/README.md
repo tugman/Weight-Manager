@@ -11,7 +11,7 @@ venv\Scripts\activate    or    source venv/bin/activate
 
 ## Install packages
 ```
-pip install fastapi uvicorn sqlalchemy psycopg2-binary "pydantic[email]" python-dotenv
+pip install fastapi uvicorn sqlalchemy psycopg2-binary "pydantic[email]" python-dotenv pydantic-collections
 ```
 
 ## Requirement file for Docker
@@ -24,6 +24,7 @@ pip freeze > requirements.txt
 >SQLAlchemy: An ORM for database interactions
 >psycopg2-binary: PostgreSQL adapter for Python
 >Pydantic: For data validation and settings management
+>pydantic-collections: Manage collections
 >python-dotenv: To load environment variables from a .env file
 
 ## Run server
