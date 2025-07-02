@@ -65,6 +65,6 @@ docker build -t weight-manager-api .
 
 Start:
 ```
-docker build -t weight-manager-api .
+docker run -d -p 8000:8000 weight-manager-api
 ```
 

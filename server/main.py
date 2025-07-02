@@ -1,15 +1,81 @@
+# MIT License
+
+# Copyright (c) 2025 BERNIER Francois
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+
+#----------------------------------------
+# Logs
+#----------------------------------------
+VERSION = "0.0.1"
+
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 import models, schemas, crud
 from database import Base, engine, SessionLocal
 from datetime import date
 from typing import List
+from dotenv import load_dotenv
+import os
+import logging
 
 
+#----------------------------------------
+# Logs
+#----------------------------------------
+load_dotenv()
+LOGS_FILE = os.getenv("LOGS_FILE")
+match os.getenv("LOGS_LEVEL"):
+  case "DEBUG":
+    LOGS_LEVEL=logging.DEBUG
+  case "INFO":
+    LOGS_LEVEL=logging.INFO
+  case "WARNING":
+    LOGS_LEVEL=logging.WARNING
+  case "ERROR":
+    LOGS_LEVEL=logging.ERROR
+  case "CRITICAL":
+    LOGS_LEVEL=logging.ERROR
+  case _:
+    LOGS_LEVEL=logging.DEBUG
+logger = logging.getLogger(__name__)
+logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %H:%M:%S', filename=LOGS_FILE, encoding='utf-8', level=LOGS_LEVEL)
+logger.critical("")
+logger.critical("-------------------------------------")
+logger.critical("- Starting Weight Manager Front End -")
+logger.critical("-------------------------------------")
+logger.critical("Weight Manager Front End version: %s", VERSION)
+logger.critical('Log file: %s', os.getenv("LOGS_FILE"))
+logger.critical('Debug level: %s', os.getenv("LOGS_LEVEL"))
+
+
+#----------------------------------------
+# Apllication
+#----------------------------------------
 Base.metadata.create_all(bind=engine)
-
 app = FastAPI(title="Weight Manager")
 
+
+#----------------------------------------
+# Database
+#----------------------------------------
 def get_db():
     db = SessionLocal()
     try:
@@ -103,8 +169,8 @@ def get_bmi(person_id: int, db: Session = Depends(get_db)):
 #----------------------------------------
 @app.get("/persons/{person_id}/all_weight/", response_model=List[schemas.WeightEntryRead])
 def get_weight(person_id: int, db: Session = Depends(get_db)):
-    weight = db.query(models.WeightEntry).filter(models.WeightEntry.person_id == person_id).order_by(models.WeightEntry.date)
-    return weight
+    weights = db.query(models.WeightEntry).filter(models.WeightEntry.person_id == person_id).order_by(models.WeightEntry.date)
+    return weights
 
 
 #----------------------------------------
@@ -128,3 +194,7 @@ def delete_weight(weight_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Weight not found")
     return {"message": "Weight deleted"}
 
+
+
+logger.critical("Weight Manager Front End ready")
+logger.critical("-------------------------------------")
