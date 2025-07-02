@@ -88,7 +88,9 @@ def get_db():
 #----------------------------------------
 @app.post("/persons/", response_model=schemas.PersonRead)
 def create_person(person: schemas.PersonCreate, db: Session = Depends(get_db)):
-    return crud.create_person(db, person)
+    person = crud.create_person(db, person)
+    logger.debug("Person created")
+    return person
 
 
 #----------------------------------------
@@ -134,7 +136,7 @@ def delete_person(person_id: int, db: Session = Depends(get_db)):
 
 
 #----------------------------------------
-# Add a person weight
+# Add a person weight record
 #----------------------------------------
 @app.post("/persons/{person_id}/weights/", response_model=schemas.WeightEntryRead)
 def add_weight(person_id: int, weight: schemas.WeightEntryCreate, db: Session = Depends(get_db)):
@@ -142,6 +144,39 @@ def add_weight(person_id: int, weight: schemas.WeightEntryCreate, db: Session = 
     if not entry:
         raise HTTPException(status_code=404, detail="Person not found")
     return entry
+
+
+#----------------------------------------
+# Get a weight record
+#----------------------------------------
+@app.get("/persons/{weight_id}/weights", response_model=schemas.WeightRead)
+def read_weight(weight_id: int, db: Session = Depends(get_db)):
+    weight = crud.get_weight(db, weight_id)
+    if not weight:
+        raise HTTPException(status_code=404, detail="Weight not found")
+    return weight
+
+
+#----------------------------------------
+# Update a weight record
+#----------------------------------------
+@app.put("/persons/{weight_id}/weights", response_model=schemas.WeightRead)
+def update_weight(weight_id: int, weight_data: schemas.WeightUpdate, db: Session = Depends(get_db)):
+    weight = crud.update_weight(db, weight_id, weight_data)
+    if not weight:
+        raise HTTPException(status_code=404, detail="Weight not found")
+    return weight
+
+
+#----------------------------------------
+# Delete a weight record
+#----------------------------------------
+@app.delete("/persons/{weight_id}/weights/")
+def delete_weight(weight_id: int, db: Session = Depends(get_db)):
+    deleted = crud.delete_weight(db, weight_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Weight not found")
+    return {"message": "Weight deleted"}
 
 
 #----------------------------------------
@@ -171,29 +206,6 @@ def get_bmi(person_id: int, db: Session = Depends(get_db)):
 def get_weight(person_id: int, db: Session = Depends(get_db)):
     weights = db.query(models.WeightEntry).filter(models.WeightEntry.person_id == person_id).order_by(models.WeightEntry.date)
     return weights
-
-
-#----------------------------------------
-# Update a weight
-#----------------------------------------
-@app.put("/persons/{weight_id}/weight", response_model=schemas.WeightRead)
-def update_weight(weight_id: int, weight_data: schemas.WeightUpdate, db: Session = Depends(get_db)):
-    weight = crud.update_weight(db, weight_id, weight_data)
-    if not weight:
-        raise HTTPException(status_code=404, detail="Weight not found")
-    return weight
-
-
-#----------------------------------------
-# Delete a weight
-#----------------------------------------
-@app.delete("/persons/{weight_id}/weights/")
-def delete_weight(weight_id: int, db: Session = Depends(get_db)):
-    deleted = crud.delete_weight(db, weight_id)
-    if not deleted:
-        raise HTTPException(status_code=404, detail="Weight not found")
-    return {"message": "Weight deleted"}
-
 
 
 logger.critical("Weight Manager Front End ready")
