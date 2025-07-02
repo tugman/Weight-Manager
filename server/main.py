@@ -242,7 +242,7 @@ def get_weight(person_id: int, db: Session = Depends(get_db)):
 
 
 
-    return result
+    return weights
 
 
 
